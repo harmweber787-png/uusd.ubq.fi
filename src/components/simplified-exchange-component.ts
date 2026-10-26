@@ -618,13 +618,9 @@ export class SimplifiedExchangeComponent {
       }
     }
 
-    // Update input label
+    // Update input label after token options and selected address are restored
     const amountLabel = document.getElementById("amountLabel");
     const amountInput = document.getElementById("exchangeAmount") as HTMLInputElement;
-
-    if (amountLabel) {
-      amountLabel.textContent = this._state.direction === "deposit" ? "LUSD" : "UUSD";
-    }
 
     if (amountInput) {
       if (isBalancesLoading) {
@@ -638,6 +634,10 @@ export class SimplifiedExchangeComponent {
 
     // Show/hide options based on protocol state and direction
     this._renderTokenOptions();
+    if (amountLabel) {
+      const selectedSymbol = this._getSelectedToken()?.symbol || "LUSD";
+      amountLabel.textContent = this._state.direction === "deposit" ? selectedSymbol : "UUSD";
+    }
     this._renderOptions();
     this._renderOutput();
   }

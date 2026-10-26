@@ -110,9 +110,11 @@ export class InventoryBarComponent {
       // This prevents clearing existing values when partial updates arrive
       const updatedBalances = [...this._state.balances];
 
-      // Update each token balance individually
+      // Update each token balance individually by contract address so same-symbol contracts remain distinct
       data.tokenBalances.forEach((newBalance) => {
-        const existingIndex = updatedBalances.findIndex((existing) => existing.symbol === newBalance.symbol);
+        const existingIndex = updatedBalances.findIndex(
+          (existing) => existing.address.toLowerCase() === newBalance.address.toLowerCase()
+        );
 
         if (existingIndex >= 0) {
           // ONLY update if we have valid data - NO FALLBACKS
@@ -285,8 +287,20 @@ export class InventoryBarComponent {
 
       const balances = await Promise.all(balancePromises);
 
-      this._state.balances = balances;
-      this._state.totalUsdValue = calculateTotalUsdValue(balances);
+      const mergedBalances = [...this._state.balances];
+      balances.forEach((refreshed) => {
+        const existingIndex = mergedBalances.findIndex(
+          (existing) => existing.address.toLowerCase() === refreshed.address.toLowerCase()
+        );
+        if (existingIndex >= 0) {
+          mergedBalances[existingIndex] = refreshed;
+        } else {
+          mergedBalances.push(refreshed);
+        }
+      });
+
+      this._state.balances = mergedBalances;
+      this._state.totalUsdValue = calculateTotalUsdValue(mergedBalances);
       this._state.isLoading = false;
 
       this._renderBalances();
